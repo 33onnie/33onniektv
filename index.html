@@ -21,21 +21,30 @@ body {
 }
 
 h3 {
+  margin: 5px 0;
   text-align: center;
   font-weight: 500;
 }
 
-input, button {
+input {
   width: 100%;
   margin: 4px 0;
   padding: 6px;
   border-radius: 8px;
   border: none;
+  background: rgba(255,255,255,0.15);
+  color: white;
 }
 
 button {
+  width: 100%;
+  padding: 7px;
+  margin-top: 5px;
   background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 8px;
   color: white;
+  cursor: pointer;
 }
 
 #queue {
@@ -53,23 +62,6 @@ li {
   font-weight: bold;
   opacity: 1;
 }
-
-/* 🎉 通知 */
-#notify {
-  position: fixed;
-  top: 20px;
-  right: -300px;
-  width: 250px;
-  padding: 15px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  transition: 0.5s;
-}
-
-#notify.show {
-  right: 20px;
-}
 </style>
 </head>
 
@@ -79,7 +71,7 @@ li {
 <h3>🎤 點歌清單</h3>
 
 <input id="nameInput" placeholder="名字">
-<input id="songInput" placeholder="YouTube連結">
+<input id="songInput" placeholder="貼YouTube連結">
 
 <button onclick="addSong()">加入清單</button>
 
@@ -87,8 +79,6 @@ li {
 
 <button onclick="nextSong()">⏭ 下一首</button>
 </div>
-
-<div id="notify"></div>
 
 <script>
 let queue = [];
@@ -102,7 +92,6 @@ function addSong() {
 
   queue.push({ name, song });
   renderQueue();
-  showNotify(name, song);
 
   document.getElementById("songInput").value = "";
 
@@ -121,24 +110,21 @@ function renderQueue() {
   });
 }
 
-function showNotify(name, song) {
-  const box = document.getElementById("notify");
-  box.innerHTML = `💖 ${name} 點了一首歌！`;
-  box.classList.add("show");
-
-  setTimeout(() => {
-    box.classList.remove("show");
-  }, 3000);
-}
-
 function playSong() {
+  if (currentIndex >= queue.length) return;
+
   let url = queue[currentIndex].song;
-  let id = url.match(/v=([^&]+)/);
-  if (!id) return;
+  let id = extractVideoID(url);
+
+  if (!id) {
+    alert("❌ 這個連結抓不到影片！");
+    return;
+  }
 
   let iframe = document.createElement("iframe");
-  iframe.src = `https://www.youtube.com/embed/${id[1]}?autoplay=1`;
+  iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
   iframe.style.display = "none";
+
   document.body.appendChild(iframe);
 }
 
@@ -146,6 +132,23 @@ function nextSong() {
   currentIndex++;
   renderQueue();
   playSong();
+}
+
+// ⭐⭐⭐ 重點：這裡已經修好所有YouTube連結 ⭐⭐⭐
+function extractVideoID(url) {
+  if (url.includes("youtu.be/")) {
+    return url.split("youtu.be/")[1].split("?")[0];
+  }
+
+  if (url.includes("v=")) {
+    return url.split("v=")[1].split("&")[0];
+  }
+
+  if (url.includes("shorts/")) {
+    return url.split("shorts/")[1].split("?")[0];
+  }
+
+  return null;
 }
 </script>
 

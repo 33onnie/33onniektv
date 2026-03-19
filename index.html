@@ -2,87 +2,158 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>珊珊KTV 💖</title>
+<title>珊珊歐餒醬點歌台 💖</title>
 
 <style>
 body {
   margin: 0;
-  background: transparent;
-  font-family: "微軟正黑體";
-}
-
-#lyrics {
-  position: absolute;
-  bottom: 80px;
-  width: 100%;
+  background: linear-gradient(135deg, #ffb6d9, #ff66b2);
+  font-family: "微軟正黑體", sans-serif;
   text-align: center;
+  color: #5a0033;
 }
 
-.line {
-  font-size: 36px;
-  color: rgba(255,255,255,0.4);
+h1 {
+  margin-top: 20px;
 }
 
-.active {
-  font-size: 52px;
-  color: #ff66cc;
+.container {
+  background: rgba(255,255,255,0.9);
+  margin: 20px auto;
+  padding: 20px;
+  width: 420px;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.2);
+}
+
+input {
+  padding: 10px;
+  margin: 5px;
+  width: 85%;
+  border-radius: 10px;
+  border: 1px solid #ff99cc;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  background: #ff4da6;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
   font-weight: bold;
-  text-shadow: 0 0 20px #ff99dd;
+}
+
+button:hover {
+  background: #ff1a8c;
+}
+
+#queue {
+  text-align: left;
+  margin-top: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+li {
+  margin: 6px 0;
+}
+
+.now {
+  color: #ff0066;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<div id="lyrics">🎤 準備開唱 💖</div>
+<h1>🎤 珊珊歐餒醬點歌台 💖</h1>
+
+<div class="container">
+
+<input id="nameInput" placeholder="你的名字 💕"><br>
+<input id="songInput" placeholder="貼YouTube連結 🎶"><br>
+
+<button onclick="addSong()">點歌 💖</button>
+
+<h3>📋 播放清單</h3>
+<ul id="queue"></ul>
+
+<div id="player"></div>
+
+<br>
+<button onclick="nextSong()">⏭ 下一首</button>
+
+</div>
 
 <script>
-let lyrics = [];
-let startTime = 0;
+let queue = [];
+let currentIndex = 0;
 
-function parseLRC(lrc) {
-  const lines = lrc.split("\n");
-  lyrics = [];
+function addSong() {
+  const name = document.getElementById("nameInput").value || "匿名";
+  const song = document.getElementById("songInput").value;
 
-  lines.forEach(line => {
-    const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-    if (match) {
-      const min = parseInt(match[1]);
-      const sec = parseFloat(match[2]);
-      const time = min * 60 + sec;
+  if (!song) return;
 
-      lyrics.push({ time, text: match[3] });
+  queue.push({ name, song });
+  renderQueue();
+
+  document.getElementById("songInput").value = "";
+
+  if (queue.length === 1) {
+    playSong();
+  }
+}
+
+function renderQueue() {
+  const list = document.getElementById("queue");
+  list.innerHTML = "";
+
+  queue.forEach((item, index) => {
+    const li = document.createElement("li");
+
+    li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name} - ${item.song}`;
+
+    if (index === currentIndex) {
+      li.classList.add("now");
     }
+
+    list.appendChild(li);
   });
 }
 
-function startLyrics() {
-  startTime = Date.now();
+function playSong() {
+  if (currentIndex >= queue.length) return;
 
-  setInterval(() => {
-    const t = (Date.now() - startTime) / 1000;
+  let url = queue[currentIndex].song;
+  let videoId = extractVideoID(url);
 
-    let current = lyrics.findLast(l => t >= l.time);
+  if (!videoId) {
+    alert("請貼正確YouTube連結！");
+    return;
+  }
 
-    document.getElementById("lyrics").innerHTML =
-      lyrics.map(l =>
-        `<div class="${l === current ? 'active' : 'line'}">${l.text}</div>`
-      ).join("");
-  }, 300);
+  document.getElementById("player").innerHTML = `
+    <iframe width="100%" height="250"
+    src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+    frameborder="0" allow="autoplay"></iframe>
+  `;
 }
 
-// 👉 範例（告白氣球 LRC）
-const lrcText = `
-[00:02.00] 塞納河畔 左岸的咖啡
-[00:06.00] 我手一杯 品嚐你的美
-[00:10.00] 留下唇印的嘴
-[00:14.00] 花店玫瑰 名字寫錯誰
-[00:18.00] 告白氣球 風在吹
-[00:22.00] 對你說愛你
-`;
+function nextSong() {
+  currentIndex++;
+  renderQueue();
+  playSong();
+}
 
-parseLRC(lrcText);
-startLyrics();
+function extractVideoID(url) {
+  const reg = /v=([^&]+)/;
+  const match = url.match(reg);
+  return match ? match[1] : null;
+}
 </script>
 
 </body>

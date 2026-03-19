@@ -2,37 +2,62 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>珊珊點歌台 🎤</title>
+<title>珊珊歐餒醬點歌台 🎤</title>
 
 <style>
 body {
-  background: #1a001f;
-  color: white;
+  background: linear-gradient(135deg, #ffb6d9, #ffcce6);
+  font-family: "微軟正黑體", sans-serif;
   text-align: center;
-  font-family: sans-serif;
+  color: #5a0033;
 }
 
 h1 {
-  color: pink;
+  font-size: 36px;
+}
+
+.container {
+  background: white;
+  margin: 30px auto;
+  padding: 20px;
+  width: 400px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
 
 input {
   padding: 10px;
-  width: 300px;
+  margin: 5px;
+  width: 80%;
   border-radius: 10px;
-  border: none;
+  border: 1px solid #ff99cc;
 }
 
 button {
   padding: 10px 20px;
-  background: pink;
+  background: #ff66b2;
   border: none;
   border-radius: 10px;
+  color: white;
   cursor: pointer;
 }
 
+button:hover {
+  background: #ff3385;
+}
+
 #queue {
-  margin-top: 20px;
+  text-align: left;
+  margin-top: 15px;
+}
+
+li {
+  margin: 5px 0;
+}
+
+.now {
+  color: red;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -41,24 +66,36 @@ button {
 
 <h1>🎤 珊珊歐餒醬點歌台 💖</h1>
 
-<input id="songInput" placeholder="貼YouTube連結">
-<button onclick="addSong()">點歌 🎶</button>
+<div class="container">
 
-<h2>📋 播放清單</h2>
+<input id="nameInput" placeholder="你的名字 💕"><br>
+<input id="songInput" placeholder="貼YouTube連結 🎶"><br>
+
+<button onclick="addSong()">點歌 💖</button>
+
+<h3>📋 播放清單</h3>
 <ul id="queue"></ul>
 
 <div id="player"></div>
+
+<br>
+<button onclick="nextSong()">⏭ 下一首</button>
+
+</div>
 
 <script>
 let queue = [];
 let currentIndex = 0;
 
 function addSong() {
-  const input = document.getElementById("songInput").value;
-  if (!input) return;
+  const name = document.getElementById("nameInput").value;
+  const song = document.getElementById("songInput").value;
 
-  queue.push(input);
+  if (!song) return;
+
+  queue.push({ name, song });
   renderQueue();
+
   document.getElementById("songInput").value = "";
 
   if (queue.length === 1) {
@@ -70,9 +107,15 @@ function renderQueue() {
   const list = document.getElementById("queue");
   list.innerHTML = "";
 
-  queue.forEach((song, index) => {
+  queue.forEach((item, index) => {
     const li = document.createElement("li");
-    li.innerText = (index === currentIndex ? "▶️ " : "") + song;
+
+    li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name || "匿名"} - ${item.song}`;
+
+    if (index === currentIndex) {
+      li.classList.add("now");
+    }
+
     list.appendChild(li);
   });
 }
@@ -80,7 +123,7 @@ function renderQueue() {
 function playSong() {
   if (currentIndex >= queue.length) return;
 
-  let url = queue[currentIndex];
+  let url = queue[currentIndex].song;
   let videoId = extractVideoID(url);
 
   if (!videoId) {
@@ -89,10 +132,16 @@ function playSong() {
   }
 
   document.getElementById("player").innerHTML = `
-    <iframe width="560" height="315"
+    <iframe width="100%" height="250"
     src="https://www.youtube.com/embed/${videoId}?autoplay=1"
     frameborder="0" allow="autoplay"></iframe>
   `;
+}
+
+function nextSong() {
+  currentIndex++;
+  renderQueue();
+  playSong();
 }
 
 function extractVideoID(url) {

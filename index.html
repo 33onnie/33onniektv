@@ -2,117 +2,94 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>🎤 珊珊點歌台</title>
+<title>🎤 珊珊點歌區 💖</title>
 
 <style>
 body {
-  margin: 0;
   font-family: "微軟正黑體";
-  background: rgba(20,20,20,0.5);
+  background: linear-gradient(135deg, #1f1f1f, #2b2b2b);
   color: white;
-}
-
-.container {
-  width: 320px;
-  padding: 12px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 18px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-}
-
-/* 標題 */
-.title {
-  text-align: center;
-  font-size: 18px;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
-}
-
-/* 現在播放 */
-.nowPlaying {
-  text-align: center;
-  font-size: 14px;
-  margin-bottom: 10px;
-  color: #ffd6ec;
-}
-
-/* 清單 */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  font-size: 13px;
-  padding: 6px;
-  margin: 4px 0;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.05);
   display: flex;
-  justify-content: space-between;
-  opacity: 0.6;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-/* 當前歌曲 */
-.now {
-  background: rgba(255,255,255,0.15);
-  font-weight: bold;
-  opacity: 1;
+.box {
+  background: rgba(255,255,255,0.08);
+  padding: 25px;
+  border-radius: 20px;
+  width: 320px;
+  text-align: center;
+  backdrop-filter: blur(10px);
 }
 
-/* emoji icon */
-.icon {
-  margin-right: 5px;
+h2 {
+  margin-bottom: 15px;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: none;
+}
+
+button {
+  padding: 10px 20px;
+  background: #ff77cc;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.msg {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ffd6f0;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<div class="box">
+  <h2>🎤 點歌區 💖</h2>
 
-<div class="title">🎤 點歌清單 💖</div>
+  <input id="name" placeholder="你的名字 👤">
+  <input id="url" placeholder="貼 YouTube 連結 🎶">
 
-<div id="nowPlaying" class="nowPlaying"></div>
+  <button onclick="send()">送出點歌</button>
 
-<ul id="list"></ul>
-
+  <div id="msg" class="msg"></div>
 </div>
 
 <script>
-function render() {
-  let queue = JSON.parse(localStorage.getItem("queue") || "[]");
-  let index = parseInt(localStorage.getItem("index") || "0");
+function send() {
+  let name = document.getElementById("name").value || "匿名";
+  let url = document.getElementById("url").value;
 
-  const list = document.getElementById("list");
-  const nowDiv = document.getElementById("nowPlaying");
-
-  list.innerHTML = "";
-
-  if (queue[index]) {
-    nowDiv.innerText = `🎵 現在播放：${queue[index].name}`;
+  if (!url) {
+    alert("請貼 YouTube 連結！");
+    return;
   }
 
-  queue.forEach((q, i) => {
-    let li = document.createElement("li");
+  let queue = JSON.parse(localStorage.getItem("queue") || "[]");
 
-    li.innerHTML = `
-      <span>
-        ${i === index ? "🎵" : "💿"} ${q.name}
-      </span>
-      <span>👤</span>
-    `;
-
-    if (i === index) li.classList.add("now");
-
-    list.appendChild(li);
+  queue.push({
+    name: name,
+    url: url
   });
-}
 
-setInterval(render, 1000);
+  localStorage.setItem("queue", JSON.stringify(queue));
+
+  document.getElementById("msg").innerText = "💖 點歌成功！";
+  
+  document.getElementById("url").value = "";
+}
 </script>
 
 </body>

@@ -2,13 +2,12 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>珊珊KTV字幕 💖</title>
+<title>珊珊KTV 💖</title>
 
 <style>
 body {
   margin: 0;
   background: transparent;
-  overflow: hidden;
   font-family: "微軟正黑體";
 }
 
@@ -21,70 +20,69 @@ body {
 
 .line {
   font-size: 36px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.4);
 }
 
 .active {
-  font-size: 48px;
+  font-size: 52px;
   color: #ff66cc;
   font-weight: bold;
-  text-shadow: 0 0 15px #ff99dd;
+  text-shadow: 0 0 20px #ff99dd;
 }
 </style>
 </head>
 
 <body>
 
-<div id="lyrics">🎤 輸入歌名開始唱 💖</div>
+<div id="lyrics">🎤 準備開唱 💖</div>
 
 <script>
-let lyricsData = [];
+let lyrics = [];
+let startTime = 0;
 
-async function loadLyrics(songName) {
-  try {
-    // 用免費歌詞API（可用但不保證每首）
-    const res = await fetch(`https://api.lyrics.ovh/v1/${songName}/`);
-    const data = await res.json();
+function parseLRC(lrc) {
+  const lines = lrc.split("\n");
+  lyrics = [];
 
-    if (!data.lyrics) {
-      document.getElementById("lyrics").innerText = "找不到歌詞 😢";
-      return;
+  lines.forEach(line => {
+    const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+    if (match) {
+      const min = parseInt(match[1]);
+      const sec = parseFloat(match[2]);
+      const time = min * 60 + sec;
+
+      lyrics.push({ time, text: match[3] });
     }
-
-    parseLyrics(data.lyrics);
-  } catch {
-    document.getElementById("lyrics").innerText = "歌詞載入失敗";
-  }
-}
-
-function parseLyrics(text) {
-  const lines = text.split("\n");
-
-  lyricsData = lines.map((line, i) => ({
-    time: i * 3, // 假時間（簡化版）
-    text: line
-  }));
-
-  startLyrics();
+  });
 }
 
 function startLyrics() {
-  let start = Date.now();
+  startTime = Date.now();
 
   setInterval(() => {
-    let t = (Date.now() - start) / 1000;
+    const t = (Date.now() - startTime) / 1000;
 
-    let current = lyricsData.findLast(l => t >= l.time);
+    let current = lyrics.findLast(l => t >= l.time);
 
     document.getElementById("lyrics").innerHTML =
-      lyricsData.map(l =>
+      lyrics.map(l =>
         `<div class="${l === current ? 'active' : 'line'}">${l.text}</div>`
       ).join("");
-  }, 500);
+  }, 300);
 }
 
-// 👉 你之後可以改這行
-loadLyrics("周杰倫 告白氣球");
+// 👉 範例（告白氣球 LRC）
+const lrcText = `
+[00:02.00] 塞納河畔 左岸的咖啡
+[00:06.00] 我手一杯 品嚐你的美
+[00:10.00] 留下唇印的嘴
+[00:14.00] 花店玫瑰 名字寫錯誰
+[00:18.00] 告白氣球 風在吹
+[00:22.00] 對你說愛你
+`;
+
+parseLRC(lrcText);
+startLyrics();
 </script>
 
 </body>

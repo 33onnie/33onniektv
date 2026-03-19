@@ -21,40 +21,21 @@ body {
 }
 
 h3 {
-  margin: 5px 0;
   text-align: center;
   font-weight: 500;
-  color: #e8dce6;
 }
 
-input {
+input, button {
   width: 100%;
   margin: 4px 0;
   padding: 6px;
   border-radius: 8px;
   border: none;
-  background: rgba(255,255,255,0.15);
-  color: white;
-}
-
-input::placeholder {
-  color: rgba(255,255,255,0.5);
 }
 
 button {
-  width: 100%;
-  padding: 7px;
-  margin-top: 5px;
   background: rgba(255,255,255,0.2);
-  border: none;
-  border-radius: 8px;
   color: white;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-button:hover {
-  background: rgba(255,255,255,0.35);
 }
 
 #queue {
@@ -65,31 +46,29 @@ button:hover {
 
 li {
   font-size: 13px;
-  margin: 4px 0;
   opacity: 0.6;
-  transition: all 0.3s;
 }
 
 .now {
-  color: #ffffff;
   font-weight: bold;
-  font-size: 15px;
   opacity: 1;
 }
 
-.new {
-  animation: slideIn 0.4s ease;
+/* 🎉 通知 */
+#notify {
+  position: fixed;
+  top: 20px;
+  right: -300px;
+  width: 250px;
+  padding: 15px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: 0.5s;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(40px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+#notify.show {
+  right: 20px;
 }
 </style>
 </head>
@@ -97,7 +76,6 @@ li {
 <body>
 
 <div class="container">
-
 <h3>🎤 點歌清單</h3>
 
 <input id="nameInput" placeholder="名字">
@@ -108,8 +86,9 @@ li {
 <ul id="queue"></ul>
 
 <button onclick="nextSong()">⏭ 下一首</button>
-
 </div>
+
+<div id="notify"></div>
 
 <script>
 let queue = [];
@@ -122,41 +101,44 @@ function addSong() {
   if (!song) return;
 
   queue.push({ name, song });
-  renderQueue(true);
+  renderQueue();
+  showNotify(name, song);
 
   document.getElementById("songInput").value = "";
 
   if (queue.length === 1) playSong();
 }
 
-function renderQueue(isNew = false) {
+function renderQueue() {
   const list = document.getElementById("queue");
   list.innerHTML = "";
 
   queue.forEach((item, index) => {
     const li = document.createElement("li");
-
     li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name}`;
-
     if (index === currentIndex) li.classList.add("now");
-    if (isNew && index === queue.length - 1) li.classList.add("new");
-
     list.appendChild(li);
   });
 }
 
-function playSong() {
-  if (currentIndex >= queue.length) return;
+function showNotify(name, song) {
+  const box = document.getElementById("notify");
+  box.innerHTML = `💖 ${name} 點了一首歌！`;
+  box.classList.add("show");
 
+  setTimeout(() => {
+    box.classList.remove("show");
+  }, 3000);
+}
+
+function playSong() {
   let url = queue[currentIndex].song;
   let id = url.match(/v=([^&]+)/);
-
   if (!id) return;
 
   let iframe = document.createElement("iframe");
   iframe.src = `https://www.youtube.com/embed/${id[1]}?autoplay=1`;
   iframe.style.display = "none";
-
   document.body.appendChild(iframe);
 }
 

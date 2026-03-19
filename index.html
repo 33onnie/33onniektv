@@ -2,88 +2,111 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>珊珊歐餒醬點歌台 💖</title>
+<title>珊珊點歌小工具 💖</title>
 
 <style>
 body {
   margin: 0;
-  background: linear-gradient(135deg, #ffb6d9, #ff66b2);
-  font-family: "微軟正黑體", sans-serif;
-  text-align: center;
-  color: #5a0033;
-}
-
-h1 {
-  margin-top: 20px;
+  font-family: "微軟正黑體";
+  background: rgba(30,30,30,0.6);
+  color: #f5f5f5;
 }
 
 .container {
-  background: rgba(255,255,255,0.9);
-  margin: 20px auto;
-  padding: 20px;
-  width: 420px;
-  border-radius: 20px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.2);
+  width: 300px;
+  padding: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+h3 {
+  margin: 5px 0;
+  text-align: center;
+  font-weight: 500;
+  color: #e8dce6;
 }
 
 input {
-  padding: 10px;
-  margin: 5px;
-  width: 85%;
-  border-radius: 10px;
-  border: 1px solid #ff99cc;
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: white;
+}
+
+input::placeholder {
+  color: rgba(255,255,255,0.5);
 }
 
 button {
-  padding: 10px 20px;
-  margin: 5px;
-  background: #ff4da6;
+  width: 100%;
+  padding: 7px;
+  margin-top: 5px;
+  background: rgba(255,255,255,0.2);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: white;
   cursor: pointer;
-  font-weight: bold;
+  transition: 0.2s;
 }
 
 button:hover {
-  background: #ff1a8c;
+  background: rgba(255,255,255,0.35);
 }
 
 #queue {
-  text-align: left;
-  margin-top: 15px;
-  max-height: 200px;
+  margin-top: 10px;
+  max-height: 120px;
   overflow-y: auto;
 }
 
 li {
-  margin: 6px 0;
+  font-size: 13px;
+  margin: 4px 0;
+  opacity: 0.6;
+  transition: all 0.3s;
 }
 
 .now {
-  color: #ff0066;
+  color: #ffffff;
   font-weight: bold;
+  font-size: 15px;
+  opacity: 1;
+}
+
+.new {
+  animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎤 珊珊歐餒醬點歌台 💖</h1>
-
 <div class="container">
 
-<input id="nameInput" placeholder="你的名字 💕"><br>
-<input id="songInput" placeholder="貼YouTube連結 🎶"><br>
+<h3>🎤 點歌清單</h3>
 
-<button onclick="addSong()">點歌 💖</button>
+<input id="nameInput" placeholder="名字">
+<input id="songInput" placeholder="YouTube連結">
 
-<h3>📋 播放清單</h3>
+<button onclick="addSong()">加入清單</button>
+
 <ul id="queue"></ul>
 
-<div id="player"></div>
-
-<br>
 <button onclick="nextSong()">⏭ 下一首</button>
 
 </div>
@@ -99,27 +122,24 @@ function addSong() {
   if (!song) return;
 
   queue.push({ name, song });
-  renderQueue();
+  renderQueue(true);
 
   document.getElementById("songInput").value = "";
 
-  if (queue.length === 1) {
-    playSong();
-  }
+  if (queue.length === 1) playSong();
 }
 
-function renderQueue() {
+function renderQueue(isNew = false) {
   const list = document.getElementById("queue");
   list.innerHTML = "";
 
   queue.forEach((item, index) => {
     const li = document.createElement("li");
 
-    li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name} - ${item.song}`;
+    li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name}`;
 
-    if (index === currentIndex) {
-      li.classList.add("now");
-    }
+    if (index === currentIndex) li.classList.add("now");
+    if (isNew && index === queue.length - 1) li.classList.add("new");
 
     list.appendChild(li);
   });
@@ -129,30 +149,21 @@ function playSong() {
   if (currentIndex >= queue.length) return;
 
   let url = queue[currentIndex].song;
-  let videoId = extractVideoID(url);
+  let id = url.match(/v=([^&]+)/);
 
-  if (!videoId) {
-    alert("請貼正確YouTube連結！");
-    return;
-  }
+  if (!id) return;
 
-  document.getElementById("player").innerHTML = `
-    <iframe width="100%" height="250"
-    src="https://www.youtube.com/embed/${videoId}?autoplay=1"
-    frameborder="0" allow="autoplay"></iframe>
-  `;
+  let iframe = document.createElement("iframe");
+  iframe.src = `https://www.youtube.com/embed/${id[1]}?autoplay=1`;
+  iframe.style.display = "none";
+
+  document.body.appendChild(iframe);
 }
 
 function nextSong() {
   currentIndex++;
   renderQueue();
   playSong();
-}
-
-function extractVideoID(url) {
-  const reg = /v=([^&]+)/;
-  const match = url.match(reg);
-  return match ? match[1] : null;
 }
 </script>
 

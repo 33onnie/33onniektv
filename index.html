@@ -2,153 +2,89 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>珊珊歐餒醬點歌台 🎤</title>
+<title>珊珊KTV字幕 💖</title>
 
 <style>
 body {
-  background: linear-gradient(135deg, #ffb6d9, #ffcce6);
-  font-family: "微軟正黑體", sans-serif;
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: "微軟正黑體";
+}
+
+#lyrics {
+  position: absolute;
+  bottom: 80px;
+  width: 100%;
   text-align: center;
-  color: #5a0033;
 }
 
-h1 {
+.line {
   font-size: 36px;
+  color: rgba(255,255,255,0.5);
 }
 
-.container {
-  background: white;
-  margin: 30px auto;
-  padding: 20px;
-  width: 400px;
-  border-radius: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-}
-
-input {
-  padding: 10px;
-  margin: 5px;
-  width: 80%;
-  border-radius: 10px;
-  border: 1px solid #ff99cc;
-}
-
-button {
-  padding: 10px 20px;
-  background: #ff66b2;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #ff3385;
-}
-
-#queue {
-  text-align: left;
-  margin-top: 15px;
-}
-
-li {
-  margin: 5px 0;
-}
-
-.now {
-  color: red;
+.active {
+  font-size: 48px;
+  color: #ff66cc;
   font-weight: bold;
+  text-shadow: 0 0 15px #ff99dd;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎤 珊珊歐餒醬點歌台 💖</h1>
-
-<div class="container">
-
-<input id="nameInput" placeholder="你的名字 💕"><br>
-<input id="songInput" placeholder="貼YouTube連結 🎶"><br>
-
-<button onclick="addSong()">點歌 💖</button>
-
-<h3>📋 播放清單</h3>
-<ul id="queue"></ul>
-
-<div id="player"></div>
-
-<br>
-<button onclick="nextSong()">⏭ 下一首</button>
-
-</div>
+<div id="lyrics">🎤 輸入歌名開始唱 💖</div>
 
 <script>
-let queue = [];
-let currentIndex = 0;
+let lyricsData = [];
 
-function addSong() {
-  const name = document.getElementById("nameInput").value;
-  const song = document.getElementById("songInput").value;
+async function loadLyrics(songName) {
+  try {
+    // 用免費歌詞API（可用但不保證每首）
+    const res = await fetch(`https://api.lyrics.ovh/v1/${songName}/`);
+    const data = await res.json();
 
-  if (!song) return;
-
-  queue.push({ name, song });
-  renderQueue();
-
-  document.getElementById("songInput").value = "";
-
-  if (queue.length === 1) {
-    playSong();
-  }
-}
-
-function renderQueue() {
-  const list = document.getElementById("queue");
-  list.innerHTML = "";
-
-  queue.forEach((item, index) => {
-    const li = document.createElement("li");
-
-    li.innerText = `${index === currentIndex ? "▶️ " : ""}${item.name || "匿名"} - ${item.song}`;
-
-    if (index === currentIndex) {
-      li.classList.add("now");
+    if (!data.lyrics) {
+      document.getElementById("lyrics").innerText = "找不到歌詞 😢";
+      return;
     }
 
-    list.appendChild(li);
-  });
-}
-
-function playSong() {
-  if (currentIndex >= queue.length) return;
-
-  let url = queue[currentIndex].song;
-  let videoId = extractVideoID(url);
-
-  if (!videoId) {
-    alert("請貼YouTube連結！");
-    return;
+    parseLyrics(data.lyrics);
+  } catch {
+    document.getElementById("lyrics").innerText = "歌詞載入失敗";
   }
-
-  document.getElementById("player").innerHTML = `
-    <iframe width="100%" height="250"
-    src="https://www.youtube.com/embed/${videoId}?autoplay=1"
-    frameborder="0" allow="autoplay"></iframe>
-  `;
 }
 
-function nextSong() {
-  currentIndex++;
-  renderQueue();
-  playSong();
+function parseLyrics(text) {
+  const lines = text.split("\n");
+
+  lyricsData = lines.map((line, i) => ({
+    time: i * 3, // 假時間（簡化版）
+    text: line
+  }));
+
+  startLyrics();
 }
 
-function extractVideoID(url) {
-  const reg = /v=([^&]+)/;
-  const match = url.match(reg);
-  return match ? match[1] : null;
+function startLyrics() {
+  let start = Date.now();
+
+  setInterval(() => {
+    let t = (Date.now() - start) / 1000;
+
+    let current = lyricsData.findLast(l => t >= l.time);
+
+    document.getElementById("lyrics").innerHTML =
+      lyricsData.map(l =>
+        `<div class="${l === current ? 'active' : 'line'}">${l.text}</div>`
+      ).join("");
+  }, 500);
 }
+
+// 👉 你之後可以改這行
+loadLyrics("周杰倫 告白氣球");
 </script>
 
 </body>
